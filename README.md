@@ -33,6 +33,13 @@ pip install flask
 
   ----------------------------------------------------------------
   <br>
+
+To run requirements
+<code>
+pip install -r requirements.txt
+</code>
+
+  <br>
   Edit app.py and change:
 app.run(host='0.0.0.0', port=80)
 
