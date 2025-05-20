@@ -34,23 +34,60 @@ def index():
     files = c.fetchall()
     conn.close()
     return render_template_string('''
-    <!doctype html>
-    <title>File Upload</title>
-    <h1>Upload new File</h1>
-    <form method=post enctype=multipart/form-data>
-      <input type=file name=file>
-      <input type=submit value=Upload>
-    </form>
-    <h2>Uploaded Files</h2>
-    <ul>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>File Upload</title>
+  <style>
+    body {
+      background-color: #B00058;
+      color: #ffffff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 40px;
+    }
+    form {
+      margin-bottom: 30px;
+    }
+    input[type="file"] {
+      margin: 10px;
+    }
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    li {
+      margin: 10px 0;
+    }
+    a {
+      color: #00bfff;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h1>Upload a File</h1>
+  <form method="post" enctype="multipart/form-data">
+    <input type="file" name="file">
+    <input type="submit" value="Upload">
+  </form>
+  <h2>Uploaded Files</h2>
+  <ul>
     {% for file in files %}
       <li>
         <a href="{{ url_for('download_file', file_id=file[0]) }}">{{ file[1] }}</a>
         ({{ file[2] }}) - Downloads: {{ file[3] }}
       </li>
     {% endfor %}
-    </ul>
-    ''', files=files)
+  </ul>
+</body>
+</html>
+''', files=files)
+
 
 # Route to handle file uploads
 @app.route('/', methods=['POST'])
@@ -92,3 +129,4 @@ def download_file(file_id):
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+
