@@ -1,0 +1,46 @@
+# This CI will be used within git , but for deployment refer git_cd for own deployment or create docker for yourself
+
+
+name: Build and Deploy Flask App
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install -r requirements.txt
+
+      - name: Run basic checks
+        run: |
+          source venv/bin/activate
+          python -m compileall .
+
+  # Example: Deploy to Render via GitHub integration or webhook
+  # Replace this with your hosting provider's deployment step!
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Deploy to Render (example)
+        run: |
+          echo "Deploy triggered! Integrate with Render, Railway, Fly.io, or your preferred host."
