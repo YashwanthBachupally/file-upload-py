@@ -2,193 +2,354 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>File Upload v2 - With Expiration</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File Share Hub</title>
   <style>
-    body {
-      background-color: #B00058;
-      color: white;
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 40px;
-    }
-    form {
-      margin-bottom: 30px;
-      background-color: rgba(255, 255, 255, 0.1);
-      padding: 20px;
-      border-radius: 10px;
-      display: inline-block;
-    }
-    input[type="file"] {
-      margin: 10px;
-    }
-    input[type="number"] {
-      margin: 5px;
-      padding: 5px;
-      width: 60px;
-    }
-    label {
-      display: block;
-      margin: 10px 0 5px 0;
-      font-size: 14px;
-    }
-    ul {
-      list-style-type: none;
+    * {
+      margin: 0;
       padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      color: white;
+      padding: 20px;
+    }
+    
+    .container {
       max-width: 800px;
       margin: 0 auto;
     }
-    li {
-      margin: 10px 0;
-      padding: 10px;
-      background-color: rgba(255, 255, 255, 0.1);
-      border-radius: 5px;
+    
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    
+    .header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    
+    .header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      font-weight: 300;
+    }
+    
+    .upload-section {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 30px;
+      margin-bottom: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+    
+    .upload-form {
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
       align-items: center;
-      flex-wrap: wrap;
+      gap: 20px;
     }
-    .file-info {
-      flex-grow: 1;
-      text-align: left;
+    
+    .file-input-wrapper {
+      position: relative;
+      display: inline-block;
+      cursor: pointer;
+      width: 100%;
+      max-width: 400px;
     }
-    .file-actions {
+    
+    .file-input {
+      position: absolute;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+    
+    .file-input-display {
       display: flex;
-      gap: 10px;
       align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px dashed rgba(255, 255, 255, 0.4);
+      border-radius: 12px;
+      padding: 40px 20px;
+      text-align: center;
+      transition: all 0.3s ease;
+      min-height: 120px;
     }
-    a {
-      color: #00bfff;
+    
+    .file-input-display:hover {
+      background: rgba(255, 255, 255, 0.25);
+      border-color: rgba(255, 255, 255, 0.6);
+      transform: translateY(-2px);
+    }
+    
+    .file-icon {
+      font-size: 2rem;
+    }
+    
+    .file-text {
+      font-size: 1.1rem;
+      font-weight: 500;
+    }
+    
+    .upload-btn {
+      background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+      color: white;
+      border: none;
+      padding: 15px 40px;
+      border-radius: 50px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(238, 90, 82, 0.4);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .upload-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(238, 90, 82, 0.6);
+    }
+    
+    .upload-btn:active {
+      transform: translateY(0);
+    }
+    
+    .actions {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .cleanup-btn {
+      background: linear-gradient(45deg, #ff9a56, #ffad56);
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 25px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(255, 154, 86, 0.3);
+    }
+    
+    .cleanup-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(255, 154, 86, 0.5);
+    }
+    
+    .files-section {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+    
+    .files-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    
+    .files-list {
+      list-style: none;
+    }
+    
+    .file-item {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 15px;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .file-item:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .file-link {
+      color: #4fc3f7;
       text-decoration: none;
+      font-size: 1.1rem;
+      font-weight: 500;
+      display: block;
+      margin-bottom: 8px;
+      transition: color 0.3s ease;
     }
-    a:hover {
+    
+    .file-link:hover {
+      color: #29b6f6;
       text-decoration: underline;
     }
-    .expire-time {
-      font-size: 12px;
-      color: #ffcccc;
+    
+    .file-meta {
+      font-size: 0.9rem;
+      opacity: 0.8;
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
     }
-    .expire-soon {
-      color: #ff6666;
-      font-weight: bold;
+    
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
     }
-    .extend-btn {
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      padding: 5px 10px;
-      border-radius: 3px;
-      cursor: pointer;
-      font-size: 12px;
+    
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      opacity: 0.7;
     }
-    .extend-btn:hover {
-      background-color: #45a049;
+    
+    .empty-icon {
+      font-size: 3rem;
+      margin-bottom: 15px;
     }
-    .stats {
-      background-color: rgba(255, 255, 255, 0.1);
-      padding: 15px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      display: inline-block;
+    
+    .empty-text {
+      font-size: 1.1rem;
     }
-    .cleanup-btn {
-      background-color: #ff4444;
-      color: white;
-      border: none;
-      padding: 8px 15px;
-      border-radius: 5px;
-      cursor: pointer;
-      margin: 10px;
-    }
-    .cleanup-btn:hover {
-      background-color: #cc3333;
+    
+    @media (max-width: 768px) {
+      .container {
+        padding: 10px;
+      }
+      
+      .header h1 {
+        font-size: 2rem;
+      }
+      
+      .upload-section, .files-section {
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+      
+      .upload-btn {
+        padding: 12px 30px;
+        font-size: 1rem;
+      }
+      
+      .file-meta {
+        flex-direction: column;
+        gap: 5px;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>File Upload v2 - With Auto-Expiration</h1>
-  
-  <div class="stats" id="stats">
-    <strong>Loading stats...</strong>
+  <div class="container">
+    <div class="header">
+      <h1>File Share Hub</h1>
+      <p>Quick & easy file sharing for everyone</p>
+    </div>
+    
+    <div class="upload-section">
+      <form class="upload-form" method="post" enctype="multipart/form-data">
+        <div class="file-input-wrapper">
+          <input type="file" name="file" class="file-input" required id="fileInput">
+          <div class="file-input-display" id="fileDisplay">
+            <div class="file-icon">📁</div>
+            <div class="file-text">Click to select a file or drag & drop</div>
+          </div>
+        </div>
+        <button type="submit" class="upload-btn">Upload File</button>
+      </form>
+    </div>
+    
+    <div class="actions">
+      <button class="cleanup-btn" onclick="manualCleanup()">🗑️ Clean Expired Files</button>
+    </div>
+    
+    <div class="files-section">
+      <h2 class="files-title">📂 Shared Files</h2>
+      {% if files %}
+        <ul class="files-list">
+          {% for file in files %}
+            <li class="file-item">
+              <a href="{{ url_for('download_file', file_id=file[0]) }}" class="file-link">
+                📄 {{ file[1] }}
+              </a>
+              <div class="file-meta">
+                <div class="meta-item">
+                  <span>🕐</span>
+                  <span>{{ file[2] }}</span>
+                </div>
+                <div class="meta-item">
+                  <span>⬇️</span>
+                  <span>{{ file[3] }} downloads</span>
+                </div>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-icon">📭</div>
+          <div class="empty-text">No files uploaded yet. Share your first file!</div>
+        </div>
+      {% endif %}
+    </div>
   </div>
-  
-  <form method="post" enctype="multipart/form-data">
-    <input type="file" name="file" required>
-    <label for="expiration_hours">Expire after (hours):</label>
-    <input type="number" name="expiration_hours" value="{{ default_expiration }}" min="1" max="168" required>
-    <br>
-    <input type="submit" value="Upload">
-  </form>
-  
-  <button class="cleanup-btn" onclick="manualCleanup()">Clean Expired Files</button>
-  
-  <h2>Active Files</h2>
-  <ul>
-    {% for file in files %}
-      <li>
-        <div class="file-info">
-          <a href="{{ url_for('download_file', file_id=file[0]) }}">{{ file[1] }}</a>
-          <br>
-          <small>Uploaded: {{ file[2] }} | Downloads: {{ file[3] }}</small>
-          <br>
-          <span class="expire-time" id="expire-{{ file[0] }}" data-expires="{{ file[4] }}">
-            Expires: {{ file[4] }}
-          </span>
-        </div>
-        <div class="file-actions">
-          <button class="extend-btn" onclick="extendExpiration({{ file[0] }})">
-            Extend (+{{ default_expiration }}h)
-          </button>
-        </div>
-      </li>
-    {% endfor %}
-  </ul>
 
   <script>
-    function updateExpirationTimes() {
-      const now = new Date();
-      const expireElements = document.querySelectorAll('.expire-time');
+    const fileInput = document.getElementById('fileInput');
+    const fileDisplay = document.getElementById('fileDisplay');
+    
+    fileInput.addEventListener('change', function() {
+      if (this.files && this.files[0]) {
+        const fileName = this.files[0].name;
+        fileDisplay.innerHTML = `
+          <div class="file-icon">✅</div>
+          <div class="file-text">Selected: ${fileName}</div>
+        `;
+      }
+    });
+    
+    // Drag and drop functionality
+    fileDisplay.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      this.style.background = 'rgba(255, 255, 255, 0.3)';
+    });
+    
+    fileDisplay.addEventListener('dragleave', function(e) {
+      e.preventDefault();
+      this.style.background = 'rgba(255, 255, 255, 0.2)';
+    });
+    
+    fileDisplay.addEventListener('drop', function(e) {
+      e.preventDefault();
+      this.style.background = 'rgba(255, 255, 255, 0.2)';
       
-      expireElements.forEach(element => {
-        const expiresAt = new Date(element.dataset.expires);
-        const timeDiff = expiresAt - now;
-        
-        if (timeDiff <= 0) {
-          element.textContent = 'Expired';
-          element.classList.add('expire-soon');
-        } else {
-          const hours = Math.floor(timeDiff / (1000 * 60 * 60));
-          const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
-          
-          if (hours < 2) {
-            element.classList.add('expire-soon');
-          }
-          
-          if (hours > 0) {
-            element.textContent = `Expires in: ${hours}h ${minutes}m`;
-          } else {
-            element.textContent = `Expires in: ${minutes}m`;
-          }
-        }
-      });
-    }
-
-    function extendExpiration(fileId) {
-      fetch(`/extend/${fileId}?hours={{ default_expiration }}`)
-        .then(response => response.json())
-        .then(data => {
-          if (data.status === 'success') {
-            alert(data.message);
-            location.reload();
-          } else {
-            alert('Error: ' + data.message);
-          }
-        })
-        .catch(error => {
-          alert('Error extending expiration');
-          console.error('Error:', error);
-        });
-    }
-
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        fileInput.files = e.dataTransfer.files;
+        const fileName = e.dataTransfer.files[0].name;
+        this.innerHTML = `
+          <div class="file-icon">✅</div>
+          <div class="file-text">Selected: ${fileName}</div>
+        `;
+      }
+    });
+    
     function manualCleanup() {
       if (confirm('This will permanently delete all expired files. Continue?')) {
         fetch('/cleanup')
@@ -203,28 +364,6 @@
           });
       }
     }
-
-    function loadStats() {
-      fetch('/stats')
-        .then(response => response.json())
-        .then(data => {
-          document.getElementById('stats').innerHTML = `
-            <strong>Files:</strong> ${data.active_files} active, ${data.expired_files} expired | 
-            <strong>Storage:</strong> ${data.total_size_mb} MB | 
-            <strong>Default Expiration:</strong> ${data.default_expiration_hours}h
-          `;
-        })
-        .catch(error => {
-          console.error('Error loading stats:', error);
-        });
-    }
-
-    // Update times every minute
-    updateExpirationTimes();
-    setInterval(updateExpirationTimes, 60000);
-    
-    // Load stats on page load
-    loadStats();
   </script>
 </body>
 </html>
