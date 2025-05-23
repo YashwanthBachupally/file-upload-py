@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>File Upload v2 - With Expiration</title>
+  <style>
+    body {
+      background-color: #B00058;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 40px;
+    }
+    form {
+      margin-bottom: 30px;
+      background-color: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 10px;
+      display: inline-block;
+    }
+    input[type="file"] {
+      margin: 10px;
+    }
+    input[type="number"] {
+      margin: 5px;
+      padding: 5px;
+      width: 60px;
+    }
+    label {
+      display: block;
+      margin: 10px 0 5px 0;
+      font-size: 14px;
+    }
+    ul {
+      list-style-type: none;
+      padding: 0;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    li {
+      margin: 10px 0;
+      padding: 10px;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .file-info {
+      flex-grow: 1;
+      text-align: left;
+    }
+    .file-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    a {
+      color: #00bfff;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .expire-time {
+      font-size: 12px;
+      color: #ffcccc;
+    }
+    .expire-soon {
+      color: #ff6666;
+      font-weight: bold;
+    }
+    .extend-btn {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .extend-btn:hover {
+      background-color: #45a049;
+    }
+    .stats {
+      background-color: rgba(255, 255, 255, 0.1);
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      display: inline-block;
+    }
+    .cleanup-btn {
+      background-color: #ff4444;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 10px;
+    }
+    .cleanup-btn:hover {
+      background-color: #cc3333;
+    }
+  </style>
+</head>
+<body>
+  <h1>File Upload v2 - With Auto-Expiration</h1>
+  
+  <div class="stats" id="stats">
+    <strong>Loading stats...</strong>
+  </div>
+  
+  <form method="post" enctype="multipart/form-data">
+    <input type="file" name="file" required>
+    <label for="expiration_hours">Expire after (hours):</label>
+    <input type="number" name="expiration_hours" value="{{ default_expiration }}" min="1" max="168" required>
+    <br>
+    <input type="submit" value="Upload">
+  </form>
+  
+  <button class="cleanup-btn" onclick="manualCleanup()">Clean Expired Files</button>
+  
+  <h2>Active Files</h2>
+  <ul>
+    {% for file in files %}
+      <li>
+        <div class="file-info">
+          <a href="{{ url_for('download_file', file_id=file[0]) }}">{{ file[1] }}</a>
+          <br>
+          <small>Uploaded: {{ file[2] }} | Downloads: {{ file[3] }}</small>
+          <br>
+          <span class="expire-time" id="expire-{{ file[0] }}" data-expires="{{ file[4] }}">
+            Expires: {{ file[4] }}
+          </span>
+        </div>
+        <div class="file-actions">
+          <button class="extend-btn" onclick="extendExpiration({{ file[0] }})">
+            Extend (+{{ default_expiration }}h)
+          </button>
+        </div>
+      </li>
+    {% endfor %}
+  </ul>
+
+  <script>
+    function updateExpirationTimes() {
+      const now = new Date();
+      const expireElements = document.querySelectorAll('.expire-time');
+      
+      expireElements.forEach(element => {
+        const expiresAt = new Date(element.dataset.expires);
+        const timeDiff = expiresAt - now;
+        
+        if (timeDiff <= 0) {
+          element.textContent = 'Expired';
+          element.classList.add('expire-soon');
+        } else {
+          const hours = Math.floor(timeDiff / (1000 * 60 * 60));
+          const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+          
+          if (hours < 2) {
+            element.classList.add('expire-soon');
+          }
+          
+          if (hours > 0) {
+            element.textContent = `Expires in: ${hours}h ${minutes}m`;
+          } else {
+            element.textContent = `Expires in: ${minutes}m`;
+          }
+        }
+      });
+    }
+
+    function extendExpiration(fileId) {
+      fetch(`/extend/${fileId}?hours={{ default_expiration }}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success') {
+            alert(data.message);
+            location.reload();
+          } else {
+            alert('Error: ' + data.message);
+          }
+        })
+        .catch(error => {
+          alert('Error extending expiration');
+          console.error('Error:', error);
+        });
+    }
+
+    function manualCleanup() {
+      if (confirm('This will permanently delete all expired files. Continue?')) {
+        fetch('/cleanup')
+          .then(response => response.json())
+          .then(data => {
+            alert(data.message);
+            location.reload();
+          })
+          .catch(error => {
+            alert('Error during cleanup');
+            console.error('Error:', error);
+          });
+      }
+    }
+
+    function loadStats() {
+      fetch('/stats')
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('stats').innerHTML = `
+            <strong>Files:</strong> ${data.active_files} active, ${data.expired_files} expired | 
+            <strong>Storage:</strong> ${data.total_size_mb} MB | 
+            <strong>Default Expiration:</strong> ${data.default_expiration_hours}h
+          `;
+        })
+        .catch(error => {
+          console.error('Error loading stats:', error);
+        });
+    }
+
+    // Update times every minute
+    updateExpirationTimes();
+    setInterval(updateExpirationTimes, 60000);
+    
+    // Load stats on page load
+    loadStats();
+  </script>
+</body>
+</html>
