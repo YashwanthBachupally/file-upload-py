@@ -8,6 +8,6 @@ MAX_CONTENT_LENGTH = 2 * 1024 * 1024 * 1024  # 2 GB
 ALLOWED_EXTENSIONS = None  # or set to ['txt', 'jpg'] etc.
 
 # File expiration settings
-DEFAULT_EXPIRATION_HOURS = int(os.environ.get('DEFAULT_EXPIRATION_HOURS', 24))  # 24 hours default
+DEFAULT_EXPIRATION_MINUTES = int(os.environ.get('DEFAULT_EXPIRATION_MINUTES', 10))  # 10 minutes default
 CLEANUP_ON_STARTUP = os.environ.get('CLEANUP_ON_STARTUP', 'true').lower() == 'true'
-AUTO_CLEANUP_INTERVAL = int(os.environ.get('AUTO_CLEANUP_INTERVAL', 3600))  # 1 hour in seconds
+AUTO_CLEANUP_INTERVAL = int(os.environ.get('AUTO_CLEANUP_INTERVAL', 300))  # 5 minutes in seconds
