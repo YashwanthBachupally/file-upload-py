@@ -21,21 +21,21 @@ def init_db():
     columns = [column[1] for column in c.fetchall()]
     if 'expires_at' not in columns:
         c.execute('ALTER TABLE files ADD COLUMN expires_at TEXT')
-        # Set default expiration for existing files (24 hours from now)
-        default_expiration = (datetime.now() + timedelta(hours=24)).isoformat()
+        # Set default expiration for existing files (10 minutes from now)
+        default_expiration = (datetime.now() + timedelta(minutes=10)).isoformat()
         c.execute('UPDATE files SET expires_at = ? WHERE expires_at IS NULL', (default_expiration,))
     
     conn.commit()
     conn.close()
 
-def insert_file(filename, upload_time, expiration_hours=24):
+def insert_file(filename, upload_time, expiration_minutes=10):
     """Insert a new file with expiration time"""
     conn = sqlite3.connect(DATABASE)
     c = conn.cursor()
     
     # Calculate expiration time
     upload_dt = datetime.fromisoformat(upload_time)
-    expires_at = (upload_dt + timedelta(hours=expiration_hours)).isoformat()
+    expires_at = (upload_dt + timedelta(minutes=expiration_minutes)).isoformat()
     
     c.execute('INSERT INTO files (filename, upload_time, expires_at) VALUES (?, ?, ?)', 
               (filename, upload_time, expires_at))
@@ -116,7 +116,7 @@ def get_expired_files():
     conn.close()
     return files
 
-def extend_file_expiration(file_id, additional_hours=24):
+def extend_file_expiration(file_id, additional_minutes=10):
     """Extend expiration time for a specific file"""
     conn = sqlite3.connect(DATABASE)
     c = conn.cursor()
@@ -127,7 +127,7 @@ def extend_file_expiration(file_id, additional_hours=24):
     
     if result:
         current_expiration = datetime.fromisoformat(result[0])
-        new_expiration = (current_expiration + timedelta(hours=additional_hours)).isoformat()
+        new_expiration = (current_expiration + timedelta(minutes=additional_minutes)).isoformat()
         c.execute('UPDATE files SET expires_at = ? WHERE id = ?', (new_expiration, file_id))
         conn.commit()
         success = c.rowcount > 0
