@@ -5,7 +5,7 @@ from flask import Flask, request, redirect, url_for, send_from_directory, render
 from werkzeug.utils import secure_filename
 from datetime import datetime
 from config import (UPLOAD_FOLDER, MAX_CONTENT_LENGTH, ALLOWED_EXTENSIONS, 
-                   DEFAULT_EXPIRATION_HOURS, CLEANUP_ON_STARTUP, AUTO_CLEANUP_INTERVAL)
+                   DEFAULT_EXPIRATION_MINUTES, CLEANUP_ON_STARTUP, AUTO_CLEANUP_INTERVAL)
 import db
 
 app = Flask(__name__)
@@ -56,15 +56,12 @@ def index():
             
             file.save(filepath)
             
-            # Get custom expiration hours from form (if provided)
-            expiration_hours = request.form.get('expiration_hours', DEFAULT_EXPIRATION_HOURS, type=int)
-            expiration_hours = max(1, min(expiration_hours, 168))  # Limit between 1 hour and 1 week
-            
-            db.insert_file(filename, datetime.now().isoformat(), expiration_hours)
+            # Files expire after 10 minutes
+            db.insert_file(filename, datetime.now().isoformat(), DEFAULT_EXPIRATION_MINUTES)
             return redirect(url_for('index'))
     
     files = db.get_files()
-    return render_template('index.html', files=files, default_expiration=DEFAULT_EXPIRATION_HOURS)
+    return render_template('index.html', files=files)
 
 @app.route('/files/<int:file_id>')
 def download_file(file_id):
@@ -78,13 +75,13 @@ def download_file(file_id):
 
 @app.route('/extend/<int:file_id>')
 def extend_expiration(file_id):
-    """Extend file expiration by default hours"""
-    additional_hours = request.args.get('hours', DEFAULT_EXPIRATION_HOURS, type=int)
-    additional_hours = max(1, min(additional_hours, 168))  # Limit between 1 hour and 1 week
+    """Extend file expiration by default minutes"""
+    additional_minutes = request.args.get('minutes', DEFAULT_EXPIRATION_MINUTES, type=int)
+    additional_minutes = max(1, min(additional_minutes, 60))  # Limit between 1 minute and 1 hour
     
-    success = db.extend_file_expiration(file_id, additional_hours)
+    success = db.extend_file_expiration(file_id, additional_minutes)
     if success:
-        return jsonify({'status': 'success', 'message': f'Expiration extended by {additional_hours} hours'})
+        return jsonify({'status': 'success', 'message': f'Expiration extended by {additional_minutes} minutes'})
     else:
         return jsonify({'status': 'error', 'message': 'File not found'}), 404
 
@@ -113,7 +110,7 @@ def stats():
         'active_files': len(files),
         'expired_files': len(expired_files),
         'total_size_mb': round(total_size / (1024 * 1024), 2),
-        'default_expiration_hours': DEFAULT_EXPIRATION_HOURS
+        'default_expiration_minutes': DEFAULT_EXPIRATION_MINUTES
     }
     
     return jsonify(stats_data)
